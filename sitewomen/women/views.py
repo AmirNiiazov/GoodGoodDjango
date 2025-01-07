@@ -4,24 +4,28 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.template.loader import render_to_string
 from datetime import datetime
+from django.template.defaultfilters import slugify
 
+data_db = [
+    {'id': 1, 'title': 'Анджелина Джоли',
+     'content': '''<h1>Анджелина Джоли</h1> (англ. Angelina Jolie[7], при рождении Войт (англ. Voight), ранее Джоли Питт (англ. Jolie Pitt); род. 4 июня 1975, Лос-Анджелес, Калифорния, США) — американская актриса кино, телевидения и озвучивания, кинорежиссёр, сценаристка, продюсер, фотомодель, посол доброй воли ООН. 
+     Обладательница премии «Оскар», трёх премий «Золотой глобус» (первая актриса в истории, три года подряд выигравшая премию) и двух «Премий Гильдии киноактёров США».''',
+     'is_published': True},
+    {'id': 2, 'title': 'Margo', 'content': 'Bio of Margo', 'is_published': 1},
+    {'id': 3, 'title': 'Julia', 'content': 'Bio of Julia', 'is_published': False},
+]
 
-menu = ['О сайте', 'Добавить статью', 'Обратная связь', 'Войти']
-
-
-class MyClass:
-    def __init__(self, a, b):
-        self.a = a
-        self.b = b
+cats_db = [
+    {'id': 1, 'name': 'Актрисы'},
+    {'id': 2, 'name': 'Певицы'},
+    {'id': 3, 'name': 'Спортсменки'},
+]
 
 def index(request):
     data = {
         'title': 'Главная страница',
-        'menu': menu,
-        'float': 25.5,
-        'set': {1, 2, 3, 4, 5},
-        'dict': {'key1': 'value1', 'key2': 'value2'},
-        'obj': MyClass(10, 20)
+        'posts': list(filter(lambda x: x['is_published'], data_db)),
+        'selected_category': 0,
     }
     return render(request, 'women/index.html', context=data)
 
@@ -32,23 +36,30 @@ def about(request):
     }
     return render(request, 'women/about.html', data)
 
-def categories(request, cat_id):
-    return HttpResponse(f'<h1>Categories</h1><p>id: {cat_id}</p>')
+
+def show_post(request, post_id):
+    return HttpResponse(f'Отображение статьи с id {post_id}')
 
 
-def categories_by_slug(request, cat_slug):
-    if request.GET:
-        if request.GET:
-            return HttpResponse(f'{"|".join(f"{k}={v}" for k, v in request.GET.items())}')
-    return HttpResponse(f'<h1>Categories by slug</h1><p>slug : {cat_slug}</p>')
+def add_page(request):
+    return HttpResponse('Добавление статьи')
 
 
-def archive(request, year):
-    if year > datetime.now().year:
-        uri = reverse('cats', args=('music', ))
-        return HttpResponseRedirect(uri)
-    return HttpResponse(f'<h1>Архив по годам</h1><p>{year}</p>')
+def contact(request):
+    return HttpResponse('Обратная связь')
 
+
+def login(request):
+    return HttpResponse('Авторизация')
+
+
+def show_category(request, cat_id):
+    data = {
+        'title': 'Отображение по рубрикам',
+        'posts': list(filter(lambda x: x['is_published'], data_db)),
+        'selected_category': cat_id,
+    }
+    return render(request, 'women/index.html', context=data)
 
 def page_not_found(request, exception):
     return HttpResponseNotFound('<h1>Page not found</h1>')
@@ -56,4 +67,3 @@ def page_not_found(request, exception):
 
 def server_error(request):
     return HttpResponseServerError('<h1>Сервер сказал пошел ты 500раз</h1>')
-
