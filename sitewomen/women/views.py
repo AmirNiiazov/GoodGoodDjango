@@ -1,6 +1,7 @@
 from django.http import HttpResponse, HttpResponseNotFound, Http404, HttpResponseRedirect, HttpResponseServerError
 
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Women
 from django.urls import reverse
 from django.template.loader import render_to_string
 from datetime import datetime
@@ -21,10 +22,11 @@ cats_db = [
     {'id': 3, 'name': 'Спортсменки'},
 ]
 
+
 def index(request):
     data = {
         'title': 'Главная страница',
-        'posts': list(filter(lambda x: x['is_published'], data_db)),
+        'posts': Women.objects.filter(is_published=1),
         'selected_category': 0,
     }
     return render(request, 'women/index.html', context=data)
@@ -37,8 +39,15 @@ def about(request):
     return render(request, 'women/about.html', data)
 
 
-def show_post(request, post_id):
-    return HttpResponse(f'Отображение статьи с id {post_id}')
+def show_post(request, post_slug):
+    post = get_object_or_404(Women, slug=post_slug)
+
+    data = {
+        'title': post.title,
+        'post': post,
+        'cat_selected': 1
+    }
+    return render(request, 'women/post.html', data)
 
 
 def add_page(request):
@@ -60,6 +69,7 @@ def show_category(request, cat_id):
         'selected_category': cat_id,
     }
     return render(request, 'women/index.html', context=data)
+
 
 def page_not_found(request, exception):
     return HttpResponseNotFound('<h1>Page not found</h1>')
